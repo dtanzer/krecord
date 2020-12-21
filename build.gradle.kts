@@ -16,9 +16,12 @@ repositories {
 dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
 	testImplementation("org.jetbrains.kotlin:kotlin-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
+	testImplementation("org.assertj:assertj-core:3.18.1")
+
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
 }
 
