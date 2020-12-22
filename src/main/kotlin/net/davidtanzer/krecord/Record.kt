@@ -20,13 +20,10 @@ private class SetterInvocationHandler<T: Record<T>>(currentValues: Map<String, A
 		val newPath = path.toMutableList()
 
 		val value = this.currentValues[method.name]
-		println("current ${method.name} -> ${value?.javaClass}")
 		if(value is Record<*>) {
-			println("Value ${method.name} is a Record, interfaces: ${value.javaClass.interfaces.map { it.name }}!")
 
 			val type = value.javaClass.interfaces[0]
 			val recordValues: MutableMap<String, Any?> = type.declaredMethods.fold(mutableMapOf()) { acc, m ->
-				println("collecting ${m.name}")
 				if(m.name != "with") {
 					acc[m.name] = m.invoke(value)
 				}
@@ -68,7 +65,6 @@ private class RecordSetter<T: Record<T>>(type: Class<T>, values: Map<String, Any
 				values = recordPath.recordValues!!
 			}
 		}
-		println(values)
 		return this
 	}
 
@@ -80,10 +76,8 @@ private class RecordSetter<T: Record<T>>(type: Class<T>, values: Map<String, Any
 	}
 
 	fun createNewValue(): T {
-		println("creating new value!")
 		val values = this.newValues.mapValues(this::mapRecordValues)
 
-		println("returning new mapped value")
 		return Proxy.newProxyInstance(
 				Record::class.java.classLoader,
 				arrayOf<Class<*>>(type),
@@ -92,14 +86,12 @@ private class RecordSetter<T: Record<T>>(type: Class<T>, values: Map<String, Any
 
 	private fun mapRecordValues(entry: Map.Entry<String, Any?>): Any? {
 		return if (entry.value is RecordPath) {
-			println("mapping ${entry.key} as record")
 			val recordValues = (entry.value as RecordPath).recordValues!!.mapValues(this::mapRecordValues)
 			Proxy.newProxyInstance(
 					Record::class.java.classLoader,
 					arrayOf((entry.value as RecordPath).type!!),
 					DynamicInvocationHandler((entry.value as RecordPath).type as Class<Record<*>>, recordValues))
 		} else {
-			println("mapping ${entry.key} to ${entry.value}")
 			entry.value
 		}
 	}
@@ -114,27 +106,42 @@ private class DynamicInvocationHandler<T: Record<T>> : InvocationHandler {
 	}
 	constructor(type: Class<T>, value: T)  {
 		this.type = type
-		println("--- creating ${type} from ${value}")
 
 		values = type.declaredMethods.fold(mutableMapOf()) { acc, m ->
-			println("getting ${m.name}")
 			acc[m.name] = m.invoke(value)
 			acc
 		}
 	}
 	@Throws(Throwable::class)
-	override operator fun invoke(proxy: Any?, method: Method, args: Array<Any>?): Any? {
-		if(method.name == "with") {
-			val setter = RecordSetter(this.type, values)
-			val mutator = args!![0] as (current: T, setter: Setter<T>) -> Setter<T>
-			val newSetter = mutator(setter.proxiedValue(), setter) as RecordSetter
+	override operator fun invoke(proxy: Any?, method: Method, args: Array<Any?>?): Any? {
+		when (method.name) {
+			"with" -> {
+				val setter = RecordSetter(this.type, values)
+				val mutator = args!![0] as (current: T, setter: Setter<T>) -> Setter<T>
+				val newSetter = mutator(setter.proxiedValue(), setter) as RecordSetter
 
-			return Proxy.newProxyInstance(
-					Record::class.java.classLoader,
-					arrayOf<Class<*>>(this.type),
-					DynamicInvocationHandler(type, newSetter.createNewValue())) as T
+				return Proxy.newProxyInstance(
+						Record::class.java.classLoader,
+						arrayOf<Class<*>>(this.type),
+						DynamicInvocationHandler(type, newSetter.createNewValue())) as T
+			}
+			"toString" -> {
+				return defaultToString(this.type.name, values)
+			}
+			"equals" -> {
+				val other = args!![0]
+
+				return if(other == null || !type.isAssignableFrom(other.javaClass)) {
+					false
+				} else {
+					defaultEquals(type, proxy!!, other)
+				}
+			}
+			"hashCode" -> {
+				return defaultHashCode(values)
+			}
+			else -> return values[method.name]
 		}
-		return values[method.name]
 	}
 }
 
