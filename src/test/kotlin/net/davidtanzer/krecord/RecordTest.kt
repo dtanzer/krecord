@@ -4,8 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 interface Foo : Record<Foo> {
-	val greeting: String;
-	val name: String;
+	val greeting: String
+	val name: String
 }
 
 class RecordTest {
@@ -18,13 +18,6 @@ class RecordTest {
 
 		assertThat(record.greeting).isEqualTo("Hello")
 		assertThat(record.name).isEqualTo("World")
-		/*
-		val f3 = f2.with{ current, setter -> setter.set(current.name) { c -> if(c == "Welt") "Kotlin" else c } }
-		println(f3.greeting+" "+f3.name)
-		val f4 = f.with{ current, setter -> setter.set(current.name) { c -> if(c == "Welt") "Kotlin" else c } }
-		println(f4.greeting+" "+f4.name)
-
-		 */
 	}
 
 	@Test
