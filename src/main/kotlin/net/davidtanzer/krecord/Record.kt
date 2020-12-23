@@ -31,6 +31,7 @@ private class SetterInvocationHandler<T: Record<T>>(currentValues: Map<String, A
 			}
 			newPath.add(RecordPath(method.name, recordValues, type))
 
+			setter.currentPath = newPath
 			return Proxy.newProxyInstance(
 					Record::class.java.classLoader,
 					arrayOf<Class<*>>(type),
@@ -39,7 +40,6 @@ private class SetterInvocationHandler<T: Record<T>>(currentValues: Map<String, A
 			newPath.add(RecordPath(method.name, null, null))
 		}
 
-		setter.currentProperty = method.name
 		setter.currentPath = newPath
 		return value
 	}
@@ -48,7 +48,6 @@ private class RecordSetter<T: Record<T>>(type: Class<T>, values: Map<String, Any
 	val type = type
 	val values = values
 	val newValues = values.toMutableMap()
-	var currentProperty: String? = null
 	var currentPath: List<RecordPath>? = null
 
 	override fun <U> set(currentValue: U, newValue: U): Setter<T>  {

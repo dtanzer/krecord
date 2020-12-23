@@ -53,6 +53,13 @@ class DeepRecordTest {
 	}
 
 	@Test
+	fun `setting a record property updates the whole record`() {
+		val customer2 = customer.with { current, setter -> setter.set(current.billingAddress, address2) }
+
+		assertThat(customer2.billingAddress).isSameAs(address2)
+	}
+
+	@Test
 	fun `setting a deep property updates the immutable records`() {
 		val customer2 = customer.with { current, setter -> setter.set(current.billingAddress.streetAddress.street, "Straussweg") }
 
