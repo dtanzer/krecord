@@ -19,10 +19,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package net.davidtanzer.krecord
+import net.davidtanzer.krecord.Record;
 
-typealias EqualsStrategy = (type: Class<*>, record1: Any, record2: Any) -> Boolean
+public class JavaTest {
+    public static void main(String[] args) {
+        RecoveryData recoveryData = Record.from(RecoveryData.class, new RecoveryData() {
+            @Override public String getPhoneNumber() { return "+43-123-45 67 890"; }
+            @Override public String getPin() { return "1234"; }
+        });
+        User user = Record.from(User.class, new User() {
+            @Override public String getUserName() { return "jenny"; }
+            @Override public String getEmailAddress() { return "jenny@example.com"; }
+            @Override public String getPassword() { return "53cur3"; }
+            @Override public RecoveryData getRecoveryData() { return recoveryData; }
+        });
 
-internal fun defaultEquals(type: Class<*>, record1: Any, record2: Any): Boolean {
-	return record1 === record2
+        User user2 = user.with((current, setter) -> setter
+                .set(current.getPassword(), "3v3nm0r353cur3")
+                .set(current.getRecoveryData().getPin(), "123456"));
+
+        System.out.println(user);
+        System.out.println(user2);
+    }
 }

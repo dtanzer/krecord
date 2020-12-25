@@ -19,10 +19,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package net.davidtanzer.krecord
+import net.davidtanzer.krecord.Record;
 
-typealias EqualsStrategy = (type: Class<*>, record1: Any, record2: Any) -> Boolean
-
-internal fun defaultEquals(type: Class<*>, record1: Any, record2: Any): Boolean {
-	return record1 === record2
+public interface User extends Record<User> {
+    String getUserName();
+    String getEmailAddress();
+    String getPassword();
+    RecoveryData getRecoveryData();
 }
